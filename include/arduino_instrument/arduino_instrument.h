@@ -2,7 +2,7 @@
 
 #include <ros/ros.h>
 #include <std_msgs/Float64MultiArray.h>
-#include <std_msgs/ByteMultiArray.h>
+#include <std_msgs/Byte.h>
 #include <geometry_msgs/Vector3.h>
 
 class ArduinoInstrument
@@ -29,7 +29,7 @@ class ArduinoInstrument
         std::string arduinoEncodersTopic;
 
         std_msgs::Float64MultiArray interfaceCommands;
-        std_msgs::ByteMultiArray commandByte;
+        std_msgs::Byte commandByte;
         geometry_msgs::Vector3 encoderMessage;
 
         bool switchState;

@@ -10,14 +10,12 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->switchState = false;
                             this->manual = true;
                             this->homing = false;
-                            this->commandByte.data.resize(2);
-                            this->commandByte.data.push_back(0);
-                            this->commandByte.data.push_back(0);
+                            this->commandByte.data=0;
 
                             this->insertionSpeed = 0.0;
                             this->insertionDepth = 0.0;
 
-                            this->rosserial_pub = this->node.advertise<std_msgs::ByteMultiArray>(this->rosserialTopic.c_str(),1);  
+                            this->rosserial_pub = this->node.advertise<std_msgs::Byte>(this->rosserialTopic.c_str(),1);  
                             this->interface_commands_sub = this->node.subscribe<std_msgs::Float64MultiArray>(this->interfaceCommandsTopic.c_str(),1, &ArduinoInstrument::InterfaceCommandsCallback, this);
                             this->arduino_encoders_sub = this->node.subscribe<geometry_msgs::Vector3>(this->arduinoEncodersTopic.c_str(),1, &ArduinoInstrument::InstrumentEncodersCallback, this);
 
@@ -86,50 +84,34 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
             if(data->data[4]==0.0){                                        // NEEDLE CONTROL
 
                 if(data->data[5]==1.0){ 
-                    this->commandByte.data.clear();
-                    this->commandByte.data.push_back(37);
-                    this->commandByte.data.push_back(insertionSpeed/4);    // >NEEDLE FORWARD<
+                    this->commandByte.data=37;    // >NEEDLE FORWARD<
                 }else if(data->data[5]==0.0){ 
-                    this->commandByte.data.clear();
-                    this->commandByte.data.push_back(33);
-                    this->commandByte.data.push_back(insertionSpeed/4);    // >NEEDLE BACKWARD<
+                    this->commandByte.data=33;    // >NEEDLE BACKWARD<
                 }
 
             }else{                                                         // ELECTRODE CONTROL
 
                 if(data->data[6]==1.0){  
-                    this->commandByte.data.clear();
-                    this->commandByte.data.push_back(42);
-                    this->commandByte.data.push_back(insertionSpeed/4);    // >ELECTRODE FORWARD<
+                    this->commandByte.data=42;;    // >ELECTRODE FORWARD<
                 }else if(data->data[6]==0.0){
-                    this->commandByte.data.clear();
-                    this->commandByte.data.push_back(34);
-                    this->commandByte.data.push_back(insertionSpeed/4);    // >ELECTRODE BACKWARD<
+                    this->commandByte.data=34;    // >ELECTRODE BACKWARD<
                 }
 
             }
         }else{
             if(data->data[11]==1.0){                
-                this->commandByte.data.clear();
-                this->commandByte.data.push_back(0);
-                this->commandByte.data.push_back(insertionSpeed/4);        // >AUTO INSERT<
+                this->commandByte.data=0;        // >AUTO INSERT<
             }else if(data->data[11]==0.0){       
-                this->commandByte.data.clear();
-                this->commandByte.data.push_back(0);
-                this->commandByte.data.push_back(insertionSpeed/4);        // >AUTO RETRACT<
+                this->commandByte.data=0;        // >AUTO RETRACT<
             }
         }
 
         if(homing){
-            this->commandByte.data.clear();
-            this->commandByte.data.push_back(16);
-            this->commandByte.data.push_back(insertionSpeed/4);            // HOME MOTORS
+            this->commandByte.data=16;            // HOME MOTORS
         }
         //--------------------------------------------------
     }else{
-        this->commandByte.data.clear();
-        this->commandByte.data.push_back(0);
-        this->commandByte.data.push_back(insertionSpeed/4);                // STOP ALL
+        this->commandByte.data=0;                // STOP ALL
     }
 }
 
