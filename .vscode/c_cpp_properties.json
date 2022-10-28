@@ -1,0 +1,39 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/hdani/catkin_ws/devel/include/**",
+        "/opt/ros/melodic/include/**",
+        "/home/hdani/catkin_ws/src/arduino_instrument/include/**",
+        "/home/hdani/catkin_ws/src/arduino_msgs/include/**",
+        "/home/hdani/catkin_ws/src/chai3d_ros/include/**",
+        "/home/hdani/catkin_ws/src/force_haptic/include/**",
+        "/home/hdani/catkin_ws/src/iiwa_stack_ws/src/iiwa_stack/iiwa_hw/include/**",
+        "/home/hdani/catkin_ws/src/iiwa_stack_ws/src/iiwa_stack/iiwa_ros/include/**",
+        "/home/hdani/catkin_ws/src/robot_haptic/include/**",
+        "/home/hdani/catkin_ws/src/robotiq/robotiq_2f_gripper_action_server/include/**",
+        "/home/hdani/catkin_ws/src/robotiq/robotiq_2f_gripper_control/include/**",
+        "/home/hdani/catkin_ws/src/robotiq/robotiq_3f_gripper_articulated_gazebo_plugins/include/**",
+        "/home/hdani/catkin_ws/src/robotiq/robotiq_3f_gripper_control/include/**",
+        "/home/hdani/catkin_ws/src/robotiq/robotiq_ethercat/include/**",
+        "/home/hdani/catkin_ws/src/robotiq/robotiq_ft_sensor/include/**",
+        "/home/hdani/catkin_ws/src/rosserial/rosserial_server/include/**",
+        "/home/hdani/catkin_ws/src/rosserial/rosserial_test/include/**",
+        "/home/hdani/catkin_ws/src/teleop_computations/include/**",
+        "/home/hdani/catkin_ws/src/teleop_twist_joy/include/**",
+        "/home/hdani/catkin_ws/src/usb_cam/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
