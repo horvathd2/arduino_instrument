@@ -10,6 +10,9 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->switchState = false;
                             this->manual = true;
                             this->homing = false;
+                            this->commandByte.data.resize(2);
+                            this->commandByte.data.push_back(0);
+                            this->commandByte.data.push_back(0);
 
                             this->insertionSpeed = 0.0;
                             this->insertionDepth = 0.0;
@@ -59,59 +62,75 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
     // MESSAGE STRUCTURE ACCORDING TO nonstd_msgs/Float69MultiArray
 
     //--------------------------------------------------
-    if(data->data[12]==1.0){                            // RFA START
+    if(data->data[12]==1.0){                                // RFA START
         if(data->data[3]==1.0)
-            this->manual = true;                        // MANUAL
+            this->manual = true;                            // MANUAL
         else
-            this->manual = false;                       // AUTO
+            this->manual = false;                           // AUTO
 
         if(data->data[9]==0.0)
-            this->homing = true;                        // HOMING MOTORS
+            this->homing = true;                            // HOMING MOTORS
         else
-            this->homing = false;                       // HOMING DISABLED
+            this->homing = false;                           // HOMING DISABLED
 
         if(data->data[9]==0.0)
-            this->switchState = true;                   // HAPTIC PRESSED
+            this->switchState = true;                       // HAPTIC PRESSED
         else
-            this->switchState = false;                  // HAPTIC RELEASED
+            this->switchState = false;                      // HAPTIC RELEASED
+
+        this->insertionSpeed = data->data[8];               // INSERTION SPEED
+        this->insertionDepth = data->data[7];               // INSERTION DEPTH
 
     //--------------------------------------------------
         if(manual){
-            if(data->data[4]==0.0){                        // NEEDLE CONTROL
+            if(data->data[4]==0.0){                                        // NEEDLE CONTROL
 
-                if(data->data[5]==1.0) 
-                    this->commandByte.data[0] = 37;        // >NEEDLE FORWARD<
-                else if(data->data[5]==0.0) 
-                    this->commandByte.data[0] = 33;        // >NEEDLE BACKWARD<
+                if(data->data[5]==1.0){ 
+                    this->commandByte.data.clear();
+                    this->commandByte.data.push_back(37);
+                    this->commandByte.data.push_back(insertionSpeed/4);    // >NEEDLE FORWARD<
+                }else if(data->data[5]==0.0){ 
+                    this->commandByte.data.clear();
+                    this->commandByte.data.push_back(33);
+                    this->commandByte.data.push_back(insertionSpeed/4);    // >NEEDLE BACKWARD<
+                }
 
-            }else{                                         // ELECTRODE CONTROL
+            }else{                                                         // ELECTRODE CONTROL
 
-                if(data->data[6]==1.0)  
-                    this->commandByte.data[0] = 42;        // >ELECTRODE FORWARD<
-                else if(data->data[6]==0.0)  
-                    this->commandByte.data[0] = 34;        // >ELECTRODE BACKWARD<
+                if(data->data[6]==1.0){  
+                    this->commandByte.data.clear();
+                    this->commandByte.data.push_back(42);
+                    this->commandByte.data.push_back(insertionSpeed/4);    // >ELECTRODE FORWARD<
+                }else if(data->data[6]==0.0){
+                    this->commandByte.data.clear();
+                    this->commandByte.data.push_back(34);
+                    this->commandByte.data.push_back(insertionSpeed/4);    // >ELECTRODE BACKWARD<
+                }
 
             }
         }else{
-            if(data->data[11]==1.0)                
-                this->commandByte.data[0] = 0;             // >AUTO INSERT<
-            else if(data->data[11]==0.0)       
-                this->commandByte.data[0] = 0;             // >AUTO RETRACT<
+            if(data->data[11]==1.0){                
+                this->commandByte.data.clear();
+                this->commandByte.data.push_back(0);
+                this->commandByte.data.push_back(insertionSpeed/4);        // >AUTO INSERT<
+            }else if(data->data[11]==0.0){       
+                this->commandByte.data.clear();
+                this->commandByte.data.push_back(0);
+                this->commandByte.data.push_back(insertionSpeed/4);        // >AUTO RETRACT<
+            }
         }
 
         if(homing){
-            this->commandByte.data[0] = 16;
+            this->commandByte.data.clear();
+            this->commandByte.data.push_back(16);
+            this->commandByte.data.push_back(insertionSpeed/4);            // HOME MOTORS
         }
         //--------------------------------------------------
     }else{
-        this->commandByte.data[0] = 0;                     // STOP ALL
+        this->commandByte.data.clear();
+        this->commandByte.data.push_back(0);
+        this->commandByte.data.push_back(insertionSpeed/4);                // STOP ALL
     }
-
-    this->insertionSpeed = data->data[8];               // INSERTION SPEED
-    this->insertionDepth = data->data[7];               // INSERTION DEPTH
-
-    this->commandByte.data[1] = insertionSpeed/4;
-
 }
 
 void ArduinoInstrument::InstrumentEncodersCallback(const geometry_msgs::Vector3::ConstPtr &data){
