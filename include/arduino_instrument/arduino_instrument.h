@@ -35,6 +35,7 @@ class ArduinoInstrument
         bool switchState;
         bool manual;
         bool homing;
+        bool ok;
         int encoderValues[2];
 
         double insertionSpeed;
