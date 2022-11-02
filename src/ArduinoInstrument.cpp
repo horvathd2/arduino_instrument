@@ -74,17 +74,17 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
         if(manual){
             if(data->data[4]==0.0){                     // NEEDLE CONTROL
 
-                if(data->data[5]==1.0){ 
+                if(data->data[5]==1.0 && data->data[10]==1.0){ 
                     this->commandByte.data = 37;          // >NEEDLE FORWARD<
-                }else if(data->data[5]==0.0){ 
+                }else if(data->data[5]==0.0 && data->data[10]==1.0){ 
                     this->commandByte.data = 33;          // >NEEDLE BACKWARD<
                 }
 
             }else{                                      // ELECTRODE CONTROL
 
-                if(data->data[6]==1.0){  
+                if(data->data[6]==1.0 && data->data[10]==1.0){  
                     this->commandByte.data = 42;;         // >ELECTRODE FORWARD<
-                }else if(data->data[6]==0.0){
+                }else if(data->data[6]==0.0 && data->data[10]==1.0){
                     this->commandByte.data = 34;          // >ELECTRODE BACKWARD<
                 }
 
@@ -99,8 +99,6 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
 
         if(homing){
             this->commandByte.data = 16;                  // HOME MOTORS
-        }else{
-            this->commandByte.data = 0;
         }
     //--------------------------------------------------
     }else{
