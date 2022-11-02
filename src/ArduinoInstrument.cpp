@@ -57,9 +57,8 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
 
         if(data->data[9]==1.0)
             this->homing = true;                        // HOMING MOTORS
-        else{
+        else
             this->homing = false;                       // HOMING DISABLED
-        }
 
         if(data->data[10]==1.0)
             this->switchState = true;                   // HAPTIC PRESSED
@@ -76,34 +75,36 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
             if(data->data[4]==0.0){                     // NEEDLE CONTROL
 
                 if(data->data[5]==1.0){ 
-                    this->commandByte.data=37;          // >NEEDLE FORWARD<
+                    this->commandByte.data = 37;          // >NEEDLE FORWARD<
                 }else if(data->data[5]==0.0){ 
-                    this->commandByte.data=33;          // >NEEDLE BACKWARD<
+                    this->commandByte.data = 33;          // >NEEDLE BACKWARD<
                 }
 
             }else{                                      // ELECTRODE CONTROL
 
                 if(data->data[6]==1.0){  
-                    this->commandByte.data=42;;         // >ELECTRODE FORWARD<
+                    this->commandByte.data = 42;;         // >ELECTRODE FORWARD<
                 }else if(data->data[6]==0.0){
-                    this->commandByte.data=34;          // >ELECTRODE BACKWARD<
+                    this->commandByte.data = 34;          // >ELECTRODE BACKWARD<
                 }
 
             }
         }else{
             if(data->data[11]==1.0){                
-                this->commandByte.data=0;               // >AUTO INSERT<
+                this->commandByte.data = 0;               // >AUTO INSERT<
             }else if(data->data[11]==0.0){       
-                this->commandByte.data=0;               // >AUTO RETRACT<
+                this->commandByte.data = 0;               // >AUTO RETRACT<
             }
         }
 
         if(homing){
-            this->commandByte.data=16;                  // HOME MOTORS
+            this->commandByte.data = 16;                  // HOME MOTORS
+        }else{
+            this->commandByte.data = 0;
         }
     //--------------------------------------------------
     }else{
-        this->commandByte.data=0;                       // STOP ALL
+        this->commandByte.data = 0;                       // STOP ALL
         ok=false;
     }
 }
