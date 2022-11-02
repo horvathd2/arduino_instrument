@@ -36,23 +36,7 @@ void ArduinoInstrument::publishInstrumentData(){
         std::cout<<"[LOG] Started!"<<std::endl;
 
     while(ros::ok()){
-        if(manual){
-            if(switchState){
-                this->rosserial_pub.publish(commandByte);      // PUBLISH ONLY IF SWITCH PRESSED
-                ok = true;
-                std::cout<<"PRESSED"<<std::endl;
-            }
-                
-            //std::cout<<"MANUAL"<<std::endl;
-        }else{
-            this->rosserial_pub.publish(commandByte);          // PUBLISH CONTINUOUSLY ON AUTO
-            //std::cout<<"AUTO"<<std::endl;
-        }
-
-        if(homing){
-            this->rosserial_pub.publish(commandByte);          // PUBLISH CONTINUOUSLY WHILE HOMING
-            //std::cout<<"HOMING"<<std::endl;
-        }
+        this->rosserial_pub.publish(commandByte);
             
         this->loopRate.sleep();
     }
@@ -81,7 +65,7 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
             this->switchState = true;                   // HAPTIC PRESSED
         else{
             this->switchState = false;                  // HAPTIC RELEASED
-            ok=false;
+            this->commandByte.data = 0;
         }
 
         this->insertionSpeed = data->data[8];           // INSERTION SPEED
