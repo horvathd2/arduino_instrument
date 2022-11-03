@@ -18,6 +18,11 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->insertionDepth = 0.0;
                             this->inDepthRes = 0;
 
+                            this->fwdM1 = 0;
+                            this->fwdM2 = 0;
+                            this->bwdM1 = 0;
+                            this->bwdM2 = 0;
+
                             this->rosserial_pub = this->node.advertise<std_msgs::Byte>(this->rosserialTopic.c_str(),1);  
                             this->interface_commands_sub = this->node.subscribe<std_msgs::Float64MultiArray>(this->interfaceCommandsTopic.c_str(),1, &ArduinoInstrument::InterfaceCommandsCallback, this);
                             this->arduino_encoders_sub = this->node.subscribe<geometry_msgs::Vector3>(this->arduinoEncodersTopic.c_str(),1, &ArduinoInstrument::InstrumentEncodersCallback, this);
