@@ -36,10 +36,17 @@ class ArduinoInstrument
         bool manual;
         bool homing;
         bool ok;
+
+        unsigned int fwdM1;
+        unsigned int bwdM1;
+        unsigned int fwdM2;
+        unsigned int bwdM2;
+
         int encoderValues[2];
 
         double insertionSpeed;
         double insertionDepth;
+        long inDepthRes;
 
         void InterfaceCommandsCallback(const std_msgs::Float64MultiArray::ConstPtr &data);
 

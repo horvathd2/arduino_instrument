@@ -11,10 +11,12 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->manual = true;
                             this->homing = false;
                             this->ok = false;
+
                             this->commandByte.data=0;
 
                             this->insertionSpeed = 0.0;
                             this->insertionDepth = 0.0;
+                            this->inDepthRes = 0;
 
                             this->rosserial_pub = this->node.advertise<std_msgs::Byte>(this->rosserialTopic.c_str(),1);  
                             this->interface_commands_sub = this->node.subscribe<std_msgs::Float64MultiArray>(this->interfaceCommandsTopic.c_str(),1, &ArduinoInstrument::InterfaceCommandsCallback, this);
@@ -48,7 +50,7 @@ void ArduinoInstrument::publishInstrumentData(){
 void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiArray::ConstPtr &data){
     // MESSAGE STRUCTURE ACCORDING TO nonstd_msgs/Float69MultiArray
 
-    //--------------------------------------------------
+    //-----------------------------------------------------------------
     if(data->data[12]==1.0){                            // RFA START
         if(data->data[3]==1.0)
             this->manual = true;                        // MANUAL
@@ -67,44 +69,74 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
             this->commandByte.data = 0;
         }
 
-        this->insertionSpeed = data->data[8];           // INSERTION SPEED
+        if(homing){
+            fwdM1=21;
+            bwdM1=17;
+            fwdM2=26;
+            bwdM2=18;
+        }else{                                          
+            if(data->data[8]==1.0){                     // INSERTION SPEED FAST NOT HOMING
+                fwdM1=37;
+                bwdM1=33;
+                fwdM2=42;
+                bwdM2=34;
+            }else{                                      // INSERTION SPEED SLOW NOT HOMING
+                fwdM1=5;
+                bwdM1=1;
+                fwdM2=10;
+                bwdM2=2;
+            }
+        }                        
+            
         this->insertionDepth = data->data[7];           // INSERTION DEPTH
+        this->inDepthRes = (insertionDepth*73000)/9.5;
 
-    //--------------------------------------------------
+    //-----------------------------------------------------------------
         if(manual){
-            if(data->data[4]==1.0){                     // NEEDLE CONTROL
+            if(data->data[4]==1.0){                                 // NEEDLE CONTROL
 
                 if(data->data[5]==1.0 && data->data[10]==1.0){ 
-                    this->commandByte.data = 37;          // >NEEDLE FORWARD<
-                }else if(data->data[5]==0.0 && data->data[10]==0.0){ 
-                    this->commandByte.data = 33;          // >NEEDLE BACKWARD<
+                    this->commandByte.data = fwdM1;                 // >NEEDLE FORWARD<
+                }else if(data->data[5]==0.0 && data->data[10]==1.0){ 
+                    this->commandByte.data = bwdM1;                 // >NEEDLE BACKWARD<
                 }
 
-            }else if(data->data[4]==0.0){                                      // ELECTRODE CONTROL
+            }else if(data->data[4]==0.0){                           // ELECTRODE CONTROL
 
                 if(data->data[6]==1.0 && data->data[10]==1.0){  
-                    this->commandByte.data = 42;;         // >ELECTRODE FORWARD<
-                }else if(data->data[6]==0.0 && data->data[10]==0.0){
-                    this->commandByte.data = 34;          // >ELECTRODE BACKWARD<
+                    this->commandByte.data = fwdM2;                 // >ELECTRODE FORWARD<
+                }else if(data->data[6]==0.0 && data->data[10]==1.0){
+                    this->commandByte.data = bwdM2;                 // >ELECTRODE BACKWARD<
                 }
 
             }
-        }else{
-            if(data->data[11]==1.0){                
-                this->commandByte.data = 0;               // >AUTO INSERT<
-            }else if(data->data[11]==0.0){       
-                this->commandByte.data = 0;               // >AUTO RETRACT<
+        }else if(data->data[4]==0.0){
+            if(data->data[11]==1.0){ 
+                if(encoderValues[0]>=inDepthRes)                    // >AUTO INSERT<               
+                    this->commandByte.data = fwdM2;                 //AUTO INSERT ELECTRODE
+                else
+                    this->commandByte.data = fwdM1;                 //AUTO INSERT NEEDLE
+
+            }else if(data->data[11]==0.0){                                              
+                if(encoderValues[1]<=0)                             // >AUTO RETRACT<
+                    this->commandByte.data = bwdM1;                 //AUTO RETRACT NEEDLE
+                else
+                    this->commandByte.data = bwdM2;                 //AUTO RETRACT ELECTRODE
             }
         }
 
         if(homing){
-            this->commandByte.data = 16;                  // HOME MOTORS
+            if(encoderValues[0]<=0)                                 // >AUTO RETRACT<
+                this->commandByte.data = bwdM2;                     //AUTO RETRACT NEEDLE
+            else
+                this->commandByte.data = bwdM1;                     //AUTO RETRACT ELECTRODE
         }
-    //--------------------------------------------------
+    //-----------------------------------------------------------------
     }else{
-        this->commandByte.data = 0;                       // STOP ALL
+        this->commandByte.data = 0;                                 // STOP ALL
         ok=false;
     }
+    //-----------------------------------------------------------------
 }
 
 void ArduinoInstrument::InstrumentEncodersCallback(const geometry_msgs::Vector3::ConstPtr &data){
