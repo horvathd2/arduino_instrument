@@ -10,7 +10,6 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->switchState = false;
                             this->manual = true;
                             this->homing = false;
-                            this->ok = false;
 
                             this->commandByte.data=0;
 
@@ -52,6 +51,8 @@ void ArduinoInstrument::publishInstrumentData(){
     std::cout<<"[LOG] Shutting down..."<<std::endl;
 }
 
+/// @brief 
+/// @param data 
 void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiArray::ConstPtr &data){
     // MESSAGE STRUCTURE ACCORDING TO nonstd_msgs/Float69MultiArray
 
@@ -91,10 +92,11 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
                 fwdM2=10;
                 bwdM2=2;
             }
-        }                        
+        }                       
             
         this->insertionDepth = data->data[7];           // INSERTION DEPTH
         this->inDepthRes = (insertionDepth*73000)/9.5;
+        std::cout<<inDepthRes<<std::endl;
 
     //-----------------------------------------------------------------
         if(manual){
@@ -127,19 +129,18 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
                     this->commandByte.data = bwdM1;                 //AUTO RETRACT NEEDLE
                 else
                     this->commandByte.data = bwdM2;                 //AUTO RETRACT ELECTRODE
+
+            }else if(homing){
+                if(encoderValues[1]<=0)                             // >HOME RETRACT<
+                    this->commandByte.data = bwdM1;                 //RETRACT NEEDLE
+                else
+                    this->commandByte.data = bwdM2;                 //RETRACT ELECTRODE
             }
         }
-
-        if(homing){
-            if(encoderValues[0]<=0)                                 // >AUTO RETRACT<
-                this->commandByte.data = bwdM2;                     //AUTO RETRACT NEEDLE
-            else
-                this->commandByte.data = bwdM1;                     //AUTO RETRACT ELECTRODE
-        }
+        
     //-----------------------------------------------------------------
     }else{
         this->commandByte.data = 0;                                 // STOP ALL
-        ok=false;
     }
     //-----------------------------------------------------------------
 }

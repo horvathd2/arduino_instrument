@@ -35,7 +35,6 @@ class ArduinoInstrument
         bool switchState;
         bool manual;
         bool homing;
-        bool ok;
 
         unsigned int fwdM1;
         unsigned int bwdM1;
