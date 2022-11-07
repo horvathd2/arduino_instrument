@@ -131,7 +131,7 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
                     this->commandByte.data = bwdM2;                 //AUTO RETRACT ELECTRODE
 
             }else if(homing){
-                if(encoderValues[0]<=0)                             // >HOME RETRACT<
+                if(encoderValues[0]<=6969)                         // >HOME RETRACT<
                     this->commandByte.data = bwdM1;                 //RETRACT NEEDLE
                 else
                     this->commandByte.data = bwdM2;                 //RETRACT ELECTRODE
