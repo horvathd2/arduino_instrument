@@ -117,21 +117,21 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
                 }
 
             }
-        }else if(data->data[4]==0.0){
+        }else{ 
             if(data->data[11]==1.0){ 
-                if(encoderValues[0]>=inDepthRes)                    // >AUTO INSERT<               
+                if(encoderValues[1]>=inDepthRes)                    // >AUTO INSERT<               
                     this->commandByte.data = fwdM2;                 //AUTO INSERT ELECTRODE
                 else
                     this->commandByte.data = fwdM1;                 //AUTO INSERT NEEDLE
 
             }else if(data->data[11]==0.0){                                              
-                if(encoderValues[1]<=0)                             // >AUTO RETRACT<
+                if(encoderValues[0]<=0)                             // >AUTO RETRACT<
                     this->commandByte.data = bwdM1;                 //AUTO RETRACT NEEDLE
                 else
                     this->commandByte.data = bwdM2;                 //AUTO RETRACT ELECTRODE
 
             }else if(homing){
-                if(encoderValues[1]<=0)                             // >HOME RETRACT<
+                if(encoderValues[0]<=0)                             // >HOME RETRACT<
                     this->commandByte.data = bwdM1;                 //RETRACT NEEDLE
                 else
                     this->commandByte.data = bwdM2;                 //RETRACT ELECTRODE
