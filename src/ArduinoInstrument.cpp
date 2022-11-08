@@ -10,6 +10,7 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->switchState = false;
                             this->manual = true;
                             this->homing = false;
+                            this->ok = false;
 
                             this->commandByte.data=0;
 
@@ -21,6 +22,8 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->fwdM2 = 0;
                             this->bwdM1 = 0;
                             this->bwdM2 = 0;
+
+                            this->microsecond = 1000000;
 
                             this->rosserial_pub = this->node.advertise<std_msgs::Byte>(this->rosserialTopic.c_str(),1);  
                             this->interface_commands_sub = this->node.subscribe<std_msgs::Float64MultiArray>(this->interfaceCommandsTopic.c_str(),1, &ArduinoInstrument::InterfaceCommandsCallback, this);
@@ -118,23 +121,66 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
 
             }
         }else{ 
-            if(data->data[11]==1.0){ 
-                if(encoderValues[1]>=inDepthRes)                    // >AUTO INSERT<               
+            
+            /*if(data->data[11]==1.0){ 
+                if(encoderValues[1]>=inDepthRes){                   // >AUTO INSERT<               
                     this->commandByte.data = fwdM2;                 //AUTO INSERT ELECTRODE
-                else
+                }else{
                     this->commandByte.data = fwdM1;                 //AUTO INSERT NEEDLE
+                    this->ok = true;
+                }
+
+                if(encoderValues[1]=inDepthRes && ok){
+                    usleep(5 * microsecond);
+                    this->ok = false;  
+                }    
 
             }else if(data->data[11]==0.0){                                              
-                if(encoderValues[0]<=0)                             // >AUTO RETRACT<
+                if(encoderValues[0]<=0){                            // >AUTO RETRACT<
                     this->commandByte.data = bwdM1;                 //AUTO RETRACT NEEDLE
-                else
+                }else{
                     this->commandByte.data = bwdM2;                 //AUTO RETRACT ELECTRODE
+                    this->ok = true;
+                }
 
-            }else if(homing){
-                if(encoderValues[0]<=6969)                         // >HOME RETRACT<
-                    this->commandByte.data = bwdM1;                 //RETRACT NEEDLE
-                else
+                if(encoderValues[0]=0 && ok){
+                    usleep(5 * microsecond);
+                    this->ok = false;  
+                }    
+
+            }else*/ 
+
+            if(data->data[4]==1.0){                                 // NEEDLE CONTROL
+
+                if(data->data[11]==1.0 && encoderValues[1]<inDepthRes){ 
+                    this->commandByte.data = fwdM1;                 // >NEEDLE FORWARD<
+                }else if(data->data[11]==0.0){ 
+                    this->commandByte.data = bwdM1;                 // >NEEDLE BACKWARD<
+                }
+
+            }else if(data->data[4]==0.0){                           // ELECTRODE CONTROL
+
+                if(data->data[11]==1.0){  
+                    this->commandByte.data = fwdM2;                 // >ELECTRODE FORWARD<
+                }else if(data->data[11]==0.0){
+                    this->commandByte.data = bwdM2;                 // >ELECTRODE BACKWARD<
+                }
+
+            }
+            
+            if(homing){
+                if(encoderValues[0]<=69696969){                     // >HOME RETRACT<
+                    this->commandByte.data = bwdM1;                 //RETRACT NEEDLE 
+                }                         
+                else{
                     this->commandByte.data = bwdM2;                 //RETRACT ELECTRODE
+                    this->ok = true;
+                }
+
+                if(encoderValues[0]==69696969 && ok){
+                    usleep(5 * microsecond);
+                    this->ok = false;  
+                }    
             }
         }
         

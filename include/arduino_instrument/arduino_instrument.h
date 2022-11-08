@@ -4,6 +4,7 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Byte.h>
 #include <geometry_msgs/Vector3.h>
+#include <unistd.h>
 
 class ArduinoInstrument
 {
@@ -35,11 +36,14 @@ class ArduinoInstrument
         bool switchState;
         bool manual;
         bool homing;
+        bool ok;
 
         unsigned int fwdM1;
         unsigned int bwdM1;
         unsigned int fwdM2;
         unsigned int bwdM2;
+
+        unsigned int microsecond;
 
         int encoderValues[2];
 
