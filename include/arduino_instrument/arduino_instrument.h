@@ -62,5 +62,5 @@ class ArduinoInstrument
 
         void InstrumentEncodersCallback(const geometry_msgs::Vector3::ConstPtr &data);
 
-        void SpacenavCallback(const geometry_msgs::Vector3::ConstPtr &data);
+        void SpacenavCallback(const sensor_msgs::Joy::ConstPtr &data);
 };

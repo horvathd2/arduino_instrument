@@ -5,8 +5,8 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                                      std::string spacenavTopic):
                          
                             node(node), loopRate(loopRate), interfaceCommandsTopic(interfaceCommandsTopic), 
-                            rosserialTopic(rosserialTopic), arduinoEncodersTopic(arduinoEncodersTopic,
-                            spacenavTopic(spacenavTopic)){
+                            rosserialTopic(rosserialTopic), arduinoEncodersTopic(arduinoEncodersTopic),
+                            spacenavTopic(spacenavTopic){
 
                             this->encoderValues[2] = {0}; 
                             this->switchState = false;
@@ -109,7 +109,8 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
 
     //-----------------------------------------------------------------
         if(manual){
-            if(data->data[14]==1.0){
+            if(data->data[13]==1.0){
+                std::cout<<"SPACENAV ENABLED"<<std::endl;
                 if(data->data[4]==1.0){                                 // NEEDLE CONTROL
 
                     if(forward){ 
@@ -198,14 +199,16 @@ void ArduinoInstrument::InstrumentEncodersCallback(const geometry_msgs::Vector3:
     std::cout<<encoderValues[0]<<" "<<encoderValues[1]<<std::endl;
 }
 
-void ArduinoInstrument::SpacenavCallback(const geometry_msgs::Vector3::ConstPtr &data){
-    if(data->buttons[0]==1)
+void ArduinoInstrument::SpacenavCallback(const sensor_msgs::Joy::ConstPtr &data){
+    if(data->buttons[0]==1){
         this->backward = true;
-    else
+        std::cout<<"BACKWARD"<<std::endl;
+    }else
         this->backward = false;
 
-    if(data->buttons[1]==1)
+    if(data->buttons[1]==1){
         this->forward = true;
-    else
+        std::cout<<"FORWARD"<<std::endl;
+    }else
         this->forward = false;
 }
