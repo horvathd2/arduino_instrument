@@ -4,13 +4,15 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Byte.h>
 #include <geometry_msgs/Vector3.h>
+#include <sensor_msgs/Joy.h>
 #include <unistd.h>
 
 class ArduinoInstrument
 {
     public:
         ArduinoInstrument(ros::NodeHandle node, float loopRate, std::string rosserialTopic, 
-                          std::string interfaceCommandsTopic, std::string arduinoEncodersTopic);
+                          std::string interfaceCommandsTopic, std::string arduinoEncodersTopic,
+                          std::string spacenavTopic);
 
         ~ArduinoInstrument();
 
@@ -24,10 +26,12 @@ class ArduinoInstrument
         ros::Publisher rosserial_pub;
         ros::Subscriber interface_commands_sub;
         ros::Subscriber arduino_encoders_sub;
+        ros::Subscriber spacenav_sub;
 
         std::string rosserialTopic;
         std::string interfaceCommandsTopic;
         std::string arduinoEncodersTopic;
+        std::string spacenavTopic;
 
         std_msgs::Float64MultiArray interfaceCommands;
         std_msgs::Byte commandByte;
@@ -37,6 +41,9 @@ class ArduinoInstrument
         bool manual;
         bool homing;
         bool ok;
+
+        bool forward;
+        bool backward;
 
         unsigned int fwdM1;
         unsigned int bwdM1;
@@ -54,4 +61,6 @@ class ArduinoInstrument
         void InterfaceCommandsCallback(const std_msgs::Float64MultiArray::ConstPtr &data);
 
         void InstrumentEncodersCallback(const geometry_msgs::Vector3::ConstPtr &data);
+
+        void SpacenavCallback(const geometry_msgs::Vector3::ConstPtr &data);
 };

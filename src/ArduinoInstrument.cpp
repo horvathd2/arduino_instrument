@@ -1,16 +1,21 @@
 #include <arduino_instrument/arduino_instrument.h>
 
 ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::string rosserialTopic, 
-                                     std::string interfaceCommandsTopic, std::string arduinoEncodersTopic):
+                                     std::string interfaceCommandsTopic, std::string arduinoEncodersTopic,
+                                     std::string spacenavTopic):
                          
                             node(node), loopRate(loopRate), interfaceCommandsTopic(interfaceCommandsTopic), 
-                            rosserialTopic(rosserialTopic), arduinoEncodersTopic(arduinoEncodersTopic){
+                            rosserialTopic(rosserialTopic), arduinoEncodersTopic(arduinoEncodersTopic,
+                            spacenavTopic(spacenavTopic)){
 
                             this->encoderValues[2] = {0}; 
                             this->switchState = false;
                             this->manual = true;
                             this->homing = false;
                             this->ok = false;
+
+                            this->forward = false;
+                            this->backward = false;
 
                             this->commandByte.data=0;
 
@@ -28,6 +33,7 @@ ArduinoInstrument::ArduinoInstrument(ros::NodeHandle node, float loopRate, std::
                             this->rosserial_pub = this->node.advertise<std_msgs::Byte>(this->rosserialTopic.c_str(),1);  
                             this->interface_commands_sub = this->node.subscribe<std_msgs::Float64MultiArray>(this->interfaceCommandsTopic.c_str(),1, &ArduinoInstrument::InterfaceCommandsCallback, this);
                             this->arduino_encoders_sub = this->node.subscribe<geometry_msgs::Vector3>(this->arduinoEncodersTopic.c_str(),1, &ArduinoInstrument::InstrumentEncodersCallback, this);
+                            this->spacenav_sub = this->node.subscribe<sensor_msgs::Joy>(this->spacenavTopic.c_str(),1, &ArduinoInstrument::SpacenavCallback, this);
 
                             }
 
@@ -96,59 +102,51 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
                 bwdM2=2;
             }
         }                       
-            
+ 
         this->insertionDepth = data->data[7];           // INSERTION DEPTH
         this->inDepthRes = (insertionDepth*73000)/9.5;
         std::cout<<inDepthRes<<std::endl;
 
     //-----------------------------------------------------------------
         if(manual){
-            if(data->data[4]==1.0){                                 // NEEDLE CONTROL
+            if(data->data[14]==1.0){
+                if(data->data[4]==1.0){                                 // NEEDLE CONTROL
 
-                if(data->data[5]==1.0 && data->data[10]==1.0){ 
-                    this->commandByte.data = fwdM1;                 // >NEEDLE FORWARD<
-                }else if(data->data[5]==0.0 && data->data[10]==1.0){ 
-                    this->commandByte.data = bwdM1;                 // >NEEDLE BACKWARD<
+                    if(forward){ 
+                        this->commandByte.data = fwdM1;                 // >NEEDLE FORWARD<
+                    }else if(backward){ 
+                        this->commandByte.data = bwdM1;                 // >NEEDLE BACKWARD<
+                    }
+
+                }else if(data->data[4]==0.0){                           // ELECTRODE CONTROL
+
+                    if(forward){  
+                        this->commandByte.data = fwdM2;                 // >ELECTRODE FORWARD<
+                    }else if(backward){
+                        this->commandByte.data = bwdM2;                 // >ELECTRODE BACKWARD<
+                    }
+
                 }
+            }else{
+                if(data->data[4]==1.0){                                 // NEEDLE CONTROL
 
-            }else if(data->data[4]==0.0){                           // ELECTRODE CONTROL
+                    if(data->data[5]==1.0 && data->data[10]==1.0){ 
+                        this->commandByte.data = fwdM1;                 // >NEEDLE FORWARD<
+                    }else if(data->data[5]==0.0 && data->data[10]==1.0){ 
+                        this->commandByte.data = bwdM1;                 // >NEEDLE BACKWARD<
+                    }
 
-                if(data->data[6]==1.0 && data->data[10]==1.0){  
-                    this->commandByte.data = fwdM2;                 // >ELECTRODE FORWARD<
-                }else if(data->data[6]==0.0 && data->data[10]==1.0){
-                    this->commandByte.data = bwdM2;                 // >ELECTRODE BACKWARD<
+                }else if(data->data[4]==0.0){                           // ELECTRODE CONTROL
+
+                    if(data->data[6]==1.0 && data->data[10]==1.0){  
+                        this->commandByte.data = fwdM2;                 // >ELECTRODE FORWARD<
+                    }else if(data->data[6]==0.0 && data->data[10]==1.0){
+                        this->commandByte.data = bwdM2;                 // >ELECTRODE BACKWARD<
+                    }
+
                 }
-
             }
         }else{ 
-            
-            /*if(data->data[11]==1.0){ 
-                if(encoderValues[1]>=inDepthRes){                   // >AUTO INSERT<               
-                    this->commandByte.data = fwdM2;                 //AUTO INSERT ELECTRODE
-                }else{
-                    this->commandByte.data = fwdM1;                 //AUTO INSERT NEEDLE
-                    this->ok = true;
-                }
-
-                if(encoderValues[1]=inDepthRes && ok){
-                    usleep(5 * microsecond);
-                    this->ok = false;  
-                }    
-
-            }else if(data->data[11]==0.0){                                              
-                if(encoderValues[0]<=0){                            // >AUTO RETRACT<
-                    this->commandByte.data = bwdM1;                 //AUTO RETRACT NEEDLE
-                }else{
-                    this->commandByte.data = bwdM2;                 //AUTO RETRACT ELECTRODE
-                    this->ok = true;
-                }
-
-                if(encoderValues[0]=0 && ok){
-                    usleep(5 * microsecond);
-                    this->ok = false;  
-                }    
-
-            }else*/ 
 
             if(data->data[4]==1.0){                                 // NEEDLE CONTROL
 
@@ -167,8 +165,9 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
                 }
 
             }
-            
+
             if(homing){
+                /*
                 if(encoderValues[0]<=69696969){                     // >HOME RETRACT<
                     this->commandByte.data = bwdM1;                 //RETRACT NEEDLE 
                 }                         
@@ -180,7 +179,8 @@ void ArduinoInstrument::InterfaceCommandsCallback(const std_msgs::Float64MultiAr
                 if(encoderValues[0]==69696969 && ok){
                     usleep(5 * microsecond);
                     this->ok = false;  
-                }    
+                } */
+                this->commandByte.data = 19;   
             }
         }
         
@@ -196,4 +196,16 @@ void ArduinoInstrument::InstrumentEncodersCallback(const geometry_msgs::Vector3:
     this->encoderValues[1] = data->y;
 
     std::cout<<encoderValues[0]<<" "<<encoderValues[1]<<std::endl;
+}
+
+void ArduinoInstrument::SpacenavCallback(const geometry_msgs::Vector3::ConstPtr &data){
+    if(data->buttons[0]==1)
+        this->backward = true;
+    else
+        this->backward = false;
+
+    if(data->buttons[1]==1)
+        this->forward = true;
+    else
+        this->forward = false;
 }

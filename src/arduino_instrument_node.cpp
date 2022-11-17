@@ -8,8 +8,8 @@ int main(int argc, char** argv){
     ros::init(argc,argv,"arduino_instrument_node");
     ros::NodeHandle node;
 
-    ArduinoInstrument instrument(node, 600, "/arduino_instrument/commands", 
-                                             "/interface/commands", "/arduino_instrument/encoders");
+    ArduinoInstrument instrument(node, 600, "/arduino_instrument/commands", "/interface/commands",
+                                            "/arduino_instrument/encoders", "/spacenav/joy");
 
     instrument.publishInstrumentData();
 
